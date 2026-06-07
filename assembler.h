@@ -1,83 +1,62 @@
 #include <stdint.h>
 
-#define ALLOC_ERROR 2
-#define FILE_ERROR 3
 
 #define MAX_FILES 255
 typedef uint8_t FILE_COUNT_T;
 
-typedef struct {} assemble_opt_t;
-
-int assemble_file(char*, assemble_opt_t);
-int assemble(char*, size_t, assemble_opt_t);
-
-typedef enum {
-  KEYWORD_INCLUDE,
-  KEYWORD_CONST,
-  KEYWORD_FN,
-  KEYWORD_RETURN,
-  KEYWORD_IF,
-  KEYWORD_ELSE
-} token_keyword_e;
-typedef struct {
-  union {
-    char LITERAL_CHAR;
-    uint8_t LITERAL_U8;
-    uint16_t LITERAL_U16;
-    uint32_t LIRERAL_U32;
-    int8_t LITERAL_I8;
-    int16_t LITERAL_I16;
-    int32_t LIRERAL_I32;
-    float LITERAL_FLOAT;
-    double LITERAL_DOUBLE;
-  } value;
-  enum {
-    LITERAL_CHAR,
-    LITERAL_STR,
-    LITERAL_U8,
-    LITERAL_U16,
-    LIRERAL_U32,
-    LITERAL_I8,
-    LITERAL_I16,
-    LIRERAL_I32,
-    LITERAL_FLOAT,
-    LITERAL_DOUBLE
-  } type;
-} token_literal_t;
-typedef struct {
-  enum {
-    DELIMITER_PARENTHESIS,
-    DELIMITER_BRACE,
-    DELIMITER_BRACKET,
-    DELIMITER_COMMA,
-    DELIMITER_SEMICOLON
-  } type;
-  bool closing;
-} token_delimiter_t;
+typedef void assemble_opt_t;
 
 typedef struct {
-  union {
-    token_literal_t TOKEN_LITERAL;
-    token_delimiter_t TOKEN_DELIMITER;
-    token_keyword_e TOKEN_KEYWORD;
-  } value;
-  size_t byte;
+  char* ptr;
   size_t size;
+} strview_t;
+
+typedef struct {
+  union {
+    char TOKEN_LITERAL_CHAR;
+    uint8_t TOKEN_LITERAL_U8;
+    uint16_t TOKEN_LITERAL_U16;
+    uint32_t TOKEN_LIRERAL_U32;
+    uint64_t TOKEN_LIRERAL_U64;
+    int8_t TOKEN_LITERAL_I8;
+    int16_t TOKEN_LITERAL_I16;
+    int32_t TOKEN_LIRERAL_I32;
+    int64_t TOKEN_LIRERAL_I64;
+    float TOKEN_LITERAL_FLOAT;
+    double TOKEN_LITERAL_DOUBLE;
+    bool TOKEN_DELIMITER_CLOSING;
+  } value;
+  size_t byte_pos;
+  size_t size;
+  FILE_COUNT_T file_id;
   enum {
     TOKEN_IDENTIFIER,
-    TOKEN_KEYWORD,
-    TOKEN_LITERAL,
-    TOKEN_DELIMITER
+    TOKEN_KEYWORD_INCLUDE,
+    TOKEN_KEYWORD_CONST,
+    TOKEN_KEYWORD_FN,
+    TOKEN_KEYWORD_RETURN,
+    TOKEN_KEYWORD_IF,
+    TOKEN_KEYWORD_ELSE,
+    TOKEN_LITERAL_CHAR,
+    TOKEN_LITERAL_STR,
+    TOKEN_LITERAL_U8,
+    TOKEN_LITERAL_U16,
+    TOKEN_LIRERAL_U32,
+    TOKEN_LIRERAL_U64,
+    TOKEN_LITERAL_I8,
+    TOKEN_LITERAL_I16,
+    TOKEN_LIRERAL_I32,
+    TOKEN_LIRERAL_I64,
+    TOKEN_LITERAL_FLOAT,
+    TOKEN_LITERAL_DOUBLE,
+    TOKEN_DELIMITER_PARENTHESIS,
+    TOKEN_DELIMITER_BRACE,
+    TOKEN_DELIMITER_BRACKET,
+    TOKEN_DELIMITER_COMMA,
+    TOKEN_DELIMITER_SEMICOLON
   } type;
-  FILE_COUNT_T file_id;
 } token_t;
 
-// typedef struct {
-//   union {
-//
-//   } value;
-//   enum {
-//
-//   } type;
-// } lex_token_t;
+strview_t open_file(char*);
+da_t tokenize_file(strview_t);
 
