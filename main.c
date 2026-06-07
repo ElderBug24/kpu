@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "dynamicarrays.h"
 #include "assembler.h"
 #include "common.h"
 
