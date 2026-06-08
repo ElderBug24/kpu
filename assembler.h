@@ -66,3 +66,18 @@ typedef struct {
 strview_t open_file(char*);
 size_t tokenize_file(strview_t, da_t*, FILE_COUNT_T);
 
+typedef enum {
+  COMMENT_NONE,
+  COMMENT_MAYBE,
+  COMMENT_YES
+} comment_e;
+
+typedef enum {
+  PARSING_NONE,
+  PARSING_CHAR,
+  PARSING_STRING,
+  PARSING_NUMBER,
+  PARSING_FLOAT,
+  PARSING_IDENTIFIER
+} parsing_e;
+

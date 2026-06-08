@@ -31,29 +31,102 @@ strview_t open_file(char* filename) {
   };
 }
 
-size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TODO: handle errors
+void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t token_start, size_t i, strview_t file, FILE_COUNT_T file_id) {
+  token_t token;
+  switch (*parsing) {
+    case PARSING_NONE:
+      break;
+    case PARSING_NUMBER:
+      break;
+    case PARSING_FLOAT:
+      break;
+    case PARSING_IDENTIFIER:
+      if (streql("include", file.ptr + token_start, i - token_start)) {
+        token = (token_t) {
+          .type = TOKEN_KEYWORD_INCLUDE,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      } else if (streql("const", file.ptr + token_start, i - token_start)) {
+        token = (token_t) {
+          .type = TOKEN_KEYWORD_CONST,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      } else if (streql("fn", file.ptr + token_start, i - token_start)) {
+        token = (token_t) {
+          .type = TOKEN_KEYWORD_FN,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      } else if (streql("return", file.ptr + token_start, i - token_start)) {
+        token = (token_t) {
+          .type = TOKEN_KEYWORD_RETURN,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      } else if (streql("if", file.ptr + token_start, i - token_start)) {
+        token = (token_t) {
+          .type = TOKEN_KEYWORD_IF,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      } else if (streql("else", file.ptr + token_start, i - token_start)) {
+        token = (token_t) {
+          .type = TOKEN_KEYWORD_ELSE,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      } else {
+        token = (token_t) {
+          .type = TOKEN_IDENTIFIER,
+          .byte_pos = token_start,
+          .size = i - token_start,
+          .file_id = file_id
+        };
+        da_push(tokens, &token, sizeof(token_t));
+      }
+      break;
+  }
+  *parsing = next_parsing;
+}
+
+size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
   da_reserve(tokens, file.size / 8, sizeof(token_t));
   token_t token = {0};
   size_t token_start = 0;
-  enum {
-    COMMENT_NONE,
-    COMMENT_MAYBE,
-    COMMENT_YES
-  } comment = COMMENT_NONE;
-  enum {
-    PARSING_NONE,
-    PARSING_CHAR,
-    PARSING_STRING,
-    PARSING_NUMBER,
-    PARSING_FLOAT,
-    PARSING_IDENTIFIER
-  } parsing, next_parsing;
+  comment_e comment = COMMENT_NONE;
+  parsing_e parsing, next_parsing;
   parsing = PARSING_NONE;
   next_parsing = PARSING_NONE;
 
+  size_t row = 1;
+  size_t column = 0;
   for (size_t i = 0; i < file.size; ++i) {
     char c = file.ptr[i];
+    if (c == '\n') {
+      if (comment == COMMENT_YES) comment = COMMENT_NONE;
+      row += 1;
+      column = 0;
+      continue;
+    }
+    column += 1;
     if (comment == COMMENT_YES) continue;
+    if (parsing == PARSING_CHAR) {
+      printf("hey\n");
+    }
     if (comment == COMMENT_MAYBE && c != '/') return i+1;
     if (parsing == PARSING_STRING) {
       if (c == '"') {
@@ -92,8 +165,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
         switch (comment) {
           case COMMENT_NONE:
             comment = COMMENT_MAYBE;
-            next_parsing = PARSING_NONE;
-            goto end_token;
+            end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
+            break;
           case COMMENT_MAYBE:
             comment = COMMENT_YES;
             break;
@@ -101,18 +174,14 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
             break;
         }
         break;
-      case '\n':
-        comment = COMMENT_NONE;
-        next_parsing = PARSING_NONE;
-        goto end_token;
       case '"':
         token_start = i;
-        next_parsing = PARSING_STRING;
-        goto end_token;
+        end_token(&parsing, PARSING_STRING, tokens, token_start, i, file, file_id);
+        break;
       case '\'':
         token_start = i;
-        next_parsing = PARSING_CHAR;
-        goto end_token;
+        end_token(&parsing, PARSING_CHAR, tokens, token_start, i, file, file_id);
+        break;
       case '(':
         token = (token_t) {
           .type = TOKEN_DELIMITER_PARENTHESIS,
@@ -123,9 +192,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case ')':
         token = (token_t) {
           .type = TOKEN_DELIMITER_PARENTHESIS,
@@ -136,9 +205,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case '[':
         token = (token_t) {
           .type = TOKEN_DELIMITER_BRACKET,
@@ -149,9 +218,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case ']':
         token = (token_t) {
           .type = TOKEN_DELIMITER_BRACKET,
@@ -162,9 +231,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case '{':
         token = (token_t) {
           .type = TOKEN_DELIMITER_BRACE,
@@ -175,9 +244,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case '}':
         token = (token_t) {
           .type = TOKEN_DELIMITER_BRACE,
@@ -188,9 +257,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case ',':
         token = (token_t) {
           .type = TOKEN_DELIMITER_COMMA,
@@ -198,9 +267,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
       case ';':
         token = (token_t) {
           .type = TOKEN_DELIMITER_SEMICOLON,
@@ -208,9 +277,19 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
           .size = 1,
           .file_id = file_id
         };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         da_push(tokens, &token, sizeof(token_t));
-        next_parsing = PARSING_NONE;
-        goto end_token;
+        break;
+      case '=':
+        token = (token_t) {
+          .type = TOKEN_OPERATOR_EQUAL,
+          .byte_pos = i,
+          .size = 1,
+          .file_id = file_id
+        };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
+        da_push(tokens, &token, sizeof(token_t));
+        break;
       case '0':
       case '1':
       case '2':
@@ -221,14 +300,14 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
       case '7':
       case '8':
       case '9':
-        if (parsing != PARSING_NONE) {
+        if (parsing == PARSING_NONE) {
           parsing = PARSING_NUMBER;
           token_start = i;
         }
         break;
       case '.':
         if (parsing == PARSING_NUMBER) parsing = PARSING_FLOAT;
-        return i+1;
+        else return i+1;
         break;
       case 'a':
       case 'b':
@@ -285,94 +364,18 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) { // TO
       case '_':
         if (parsing == PARSING_NONE) {
           parsing = PARSING_IDENTIFIER;
+          printf("parsing is now indentifier at (%zu:%zu)\n", row, column);
+          if (row == 11 && column == 18) {
+            printf("now\n");
+          }
           token_start = i;
         }
         break;
       case ' ':
-        next_parsing = PARSING_NONE;
-        goto end_token;
+      case '\t':
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
+        break;
     }
-
-    continue;
-
-  end_token:
-    switch (parsing) {
-      case PARSING_NONE:
-        break;
-      case PARSING_NUMBER:
-        break;
-      case PARSING_FLOAT:
-        break;
-      case PARSING_IDENTIFIER:
-        if (streql("include", file.ptr + token_start, i - token_start)) {
-          token = (token_t) {
-            .type = TOKEN_KEYWORD_INCLUDE,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        } else if (streql("const", file.ptr + token_start, i - token_start)) {
-          token = (token_t) {
-            .type = TOKEN_KEYWORD_CONST,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        } else if (streql("fn", file.ptr + token_start, i - token_start)) {
-          token = (token_t) {
-            .type = TOKEN_KEYWORD_FN,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        } else if (streql("return", file.ptr + token_start, i - token_start)) {
-          token = (token_t) {
-            .type = TOKEN_KEYWORD_RETURN,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        } else if (streql("if", file.ptr + token_start, i - token_start)) {
-          token = (token_t) {
-            .type = TOKEN_KEYWORD_IF,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        } else if (streql("else", file.ptr + token_start, i - token_start)) {
-          token = (token_t) {
-            .type = TOKEN_KEYWORD_ELSE,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        } else {
-          token = (token_t) {
-            .type = TOKEN_IDENTIFIER,
-            .byte_pos = token_start,
-            .size = i - token_start,
-            .file_id = file_id
-          };
-          da_push(tokens, &token, sizeof(token_t));
-          parsing = PARSING_NONE;
-        }
-        break;
-      default:
-        exit_error("unreachable");
-    }
-    parsing = next_parsing;
   }
 
   return 0;

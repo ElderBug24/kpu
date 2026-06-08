@@ -16,7 +16,6 @@ typedef enum {
 } command_e;
 
 int main(int argc, char** argv) {
-  printf("%zu\n", sizeof(token_t));
   if (argc < 2) exit_error("not enough arguments");
 
   command_e command;
@@ -50,7 +49,7 @@ int main(int argc, char** argv) {
 
       da_t tokens = da_with_capacity(256, sizeof(token_t));
       size_t err = tokenize_file(file, &tokens, 0);
-      if (err) exit_error("could not parse (byte %zu)", err);
+      if (err) exit_error("could not parse (byte %zu)", err - 1);
 
       printf("%zu tokens\n", tokens.count);
       for (size_t i = 0; i < tokens.count; ++i) {
