@@ -11,9 +11,14 @@
 #define WHT    "\033[0;37m"
 #define CRESET "\033[0m"
 
-#define exit_error(comment) \
+#define exit_error(...) \
   do { \
-    printf(RED "\nError: %s\n" CRESET, comment); \
+    printf(RED "\nError: "); \
+    printf(__VA_ARGS__); \
+    printf(CRESET "\n"); \
     return 1; \
   } while (0);
+
+
+bool streql(const char*, const char*, size_t);
 

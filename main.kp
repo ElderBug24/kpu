@@ -13,13 +13,10 @@ const [4] TAU = [0]; // we don't have any operations yet :(
 
 main: // 'main' is the entry point of the program and must be unique
 fn main [] -> [[4]] {
-  alloc [
-    [1] num;
-    [3] bytes;
-    [4] float;
-  ];
+  [3] bytes;
+  [4] float;
 
-  num = [(u8) 39]; // parse '39' as an 8 bits unsigned integer and store it into 1 byte
+  [1] num = [(u8) 39]; // parse '39' as an 8 bits unsigned integer and store it into 1 byte
   bytes = [0, 00001001, (char) '#']; // store a 0 (1 byte), then '00001001', into the first two bytes bytes | '0' is equivalent to '(u8) 0': 1 empty byte and 'bytes = ...' is the same as 'bytes[0] = ...'
   bytes[2] = [(char) '#']; // then the character '#', into the last byte
   bytes[0] = [num];
@@ -33,9 +30,7 @@ fn func [ // parameters: a list
 ] -> [ // return
   [1]
 ] { // body, enclosed by '{' and '}'
-  alloc [ // stack
-    [1] c
-  ];
+  [1] c;
 
   c = [add_u8[a, b]]; // c = a + b
 
