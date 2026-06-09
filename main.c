@@ -52,9 +52,24 @@ int main(int argc, char** argv) {
       if (err) exit_error("could not parse (byte %zu)", err - 1);
 
       printf("%zu tokens\n", tokens.count);
+      size_t indent = 0;
       for (size_t i = 0; i < tokens.count; ++i) {
         token_t token = ((token_t*) tokens.items)[i];
+
+        if (token.type == TOKEN_DELIMITER_BRACE) {
+          if (token.value.TOKEN_DELIMITER_CLOSING) {
+            indent -= 1;
+            printf("\r");
+            for (size_t j = 0; j < indent; ++j) printf("  ");
+          } else {
+            indent += 1;
+          }
+        }
         printf("%.*s ", (unsigned int) token.size, file.ptr + token.byte_pos);
+        if (token.type == TOKEN_DELIMITER_SEMICOLON || token.type == TOKEN_DELIMITER_BRACE) {
+          printf("\n");
+          for (size_t j = 0; j < indent; ++j) printf("  ");
+        }
       }
 
       printf("\n");

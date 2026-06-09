@@ -98,7 +98,11 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
   size_t column = 0;
   for (size_t i = 0; i < file.size; ++i) {
     char c = file.ptr[i];
-    if (c == '\r') continue;
+    if (c == '\r') {
+      if (comment == COMMENT_YES) comment = COMMENT_NONE;
+      end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
+      continue;
+    }
     if (c == '\n') {
       if (comment == COMMENT_YES) comment = COMMENT_NONE;
       row += 1;
@@ -141,6 +145,26 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       }
       continue;
     }
+    bool found = false;
+    for (size_t j = 0; j < sizeof(DELIMITERS_LUT) / sizeof(DELIMITERS_LUT[0]); ++j) {
+      if (c == DELIMITERS_LUT[j].delimiter) {
+        token_t token = {
+          .type = DELIMITERS_LUT[j].type,
+          .value = {
+            .TOKEN_DELIMITER_CLOSING = DELIMITERS_LUT[j].closing
+          },
+          .byte_pos = i,
+          .size = 1,
+          .file_id = file_id
+        };
+        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
+        da_push(tokens, &token, sizeof(token_t));
+
+        found = true;
+        break;
+      }
+    }
+    if (found) continue;
     switch (c) {
       case '/':
         switch (comment) {
@@ -162,104 +186,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case '\'':
         token_start = i;
         end_token(&parsing, PARSING_CHAR, tokens, token_start, i, file, file_id);
-        break;
-      case '(':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_PARENTHESIS,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = false
-          },
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case ')':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_PARENTHESIS,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = true
-          },
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case '[':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_BRACKET,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = false
-          },
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case ']':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_BRACKET,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = true
-          },
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case '{':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_BRACE,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = false
-          },
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case '}':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_BRACE,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = true
-          },
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case ',':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_COMMA,
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
-        break;
-      case ';':
-        token = (token_t) {
-          .type = TOKEN_DELIMITER_SEMICOLON,
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
-        da_push(tokens, &token, sizeof(token_t));
         break;
       case '=':
         token = (token_t) {

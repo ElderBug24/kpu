@@ -55,6 +55,21 @@ static const struct {
   { "else",    TOKEN_KEYWORD_ELSE    }
 };
 
+static const struct {
+  const char delimiter;
+  token_type_e type;
+  bool closing;
+} DELIMITERS_LUT[] = {
+  { '(',       TOKEN_DELIMITER_PARENTHESIS, false },
+  { ')',       TOKEN_DELIMITER_PARENTHESIS, true  },
+  { '[',       TOKEN_DELIMITER_BRACKET,     false },
+  { ']',       TOKEN_DELIMITER_BRACKET,     true  },
+  { '{',       TOKEN_DELIMITER_BRACE,       false },
+  { '}',       TOKEN_DELIMITER_BRACE,       true  },
+  { ',',       TOKEN_DELIMITER_COMMA,       false },
+  { ';',       TOKEN_DELIMITER_SEMICOLON,   false }
+};
+
 strview_t open_file(char*);
 size_t tokenize_file(strview_t, da_t*, FILE_COUNT_T);
 
