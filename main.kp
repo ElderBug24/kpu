@@ -11,8 +11,7 @@ include [ // includes the content of files before anything gets tokenized
 const [4] PI = [(float) 3.14]; // parse '3.14' as a 32 bits float and store it into 4 bytes
 const [4] TAU = [0]; // we don't have any operations yet :(
 
-main: // 'main' is the entry point of the program and must be unique
-fn main [] -> [[4]] {
+fn main [] -> [[4]] { // 'main' is the entry point of the program and must be unique
   [3] bytes;
   [4] float;
 

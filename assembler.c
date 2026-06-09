@@ -10,7 +10,7 @@
 
 
 strview_t open_file(char* filename) {
-  FILE* file = fopen(filename, "r");
+  FILE* file = fopen(filename, "rb");
   if (!file) return (strview_t) {0};
   fseek(file, 0, SEEK_END);
   size_t file_size = ftell(file);
@@ -35,10 +35,26 @@ void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t 
   token_t token;
   switch (*parsing) {
     case PARSING_NONE:
+    case PARSING_CHAR:
+    case PARSING_STRING:
       break;
     case PARSING_NUMBER:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_NUM,
+        .byte_pos = token_start,
+        .size = i - token_start,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
       break;
     case PARSING_FLOAT:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_FLOAT,
+        .byte_pos = token_start,
+        .size = i - token_start,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
       break;
     case PARSING_IDENTIFIER:
       if (streql("include", file.ptr + token_start, i - token_start)) {
@@ -108,15 +124,14 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
   token_t token = {0};
   size_t token_start = 0;
   comment_e comment = COMMENT_NONE;
-  parsing_e parsing, next_parsing;
+  parsing_e parsing;
   parsing = PARSING_NONE;
-  next_parsing = PARSING_NONE;
 
   size_t row = 1;
   size_t column = 0;
   for (size_t i = 0; i < file.size; ++i) {
     char c = file.ptr[i];
-    if (c == '\n') {
+    if (c == '\n' || c == '\r') {
       if (comment == COMMENT_YES) comment = COMMENT_NONE;
       row += 1;
       column = 0;
@@ -124,9 +139,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
     }
     column += 1;
     if (comment == COMMENT_YES) continue;
-    if (parsing == PARSING_CHAR) {
-      printf("hey\n");
-    }
     if (comment == COMMENT_MAYBE && c != '/') return i+1;
     if (parsing == PARSING_STRING) {
       if (c == '"') {
@@ -364,10 +376,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case '_':
         if (parsing == PARSING_NONE) {
           parsing = PARSING_IDENTIFIER;
-          printf("parsing is now indentifier at (%zu:%zu)\n", row, column);
-          if (row == 11 && column == 18) {
-            printf("now\n");
-          }
           token_start = i;
         }
         break;

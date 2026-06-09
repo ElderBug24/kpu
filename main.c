@@ -54,90 +54,10 @@ int main(int argc, char** argv) {
       printf("%zu tokens\n", tokens.count);
       for (size_t i = 0; i < tokens.count; ++i) {
         token_t token = ((token_t*) tokens.items)[i];
-        switch (token.type) {
-          case TOKEN_IDENTIFIER:
-            printf("TOKEN_IDENTIFIER\n");
-            break;
-          case TOKEN_LITERAL_CHAR:
-            printf("TOKEN_LITERAL_CHAR\n");
-            break;
-          case TOKEN_LITERAL_STR:
-            printf("TOKEN_LITERAL_STR\n");
-            break;
-          case TOKEN_LITERAL_U8:
-            printf("TOKEN_LITERAL_U8\n");
-            break;
-          case TOKEN_LITERAL_U16:
-            printf("TOKEN_LITERAL_U16\n");
-            break;
-          case TOKEN_LIRERAL_U32:
-            printf("TOKEN_LIRERAL_U32\n");
-            break;
-          case TOKEN_LIRERAL_U64:
-            printf("TOKEN_LIRERAL_U64\n");
-            break;
-          case TOKEN_LIRERAL_USIZE:
-            printf("TOKEN_LIRERAL_USIZE\n");
-            break;
-          case TOKEN_LITERAL_I8:
-            printf("TOKEN_LITERAL_I8\n");
-            break;
-          case TOKEN_LITERAL_I16:
-            printf("TOKEN_LITERAL_I16\n");
-            break;
-          case TOKEN_LIRERAL_I32:
-            printf("TOKEN_LIRERAL_I32\n");
-            break;
-          case TOKEN_LIRERAL_I64:
-            printf("TOKEN_LIRERAL_I64\n");
-            break;
-          case TOKEN_LIRERAL_ISIZE:
-            printf("TOKEN_LIRERAL_ISIZE\n");
-            break;
-          case TOKEN_LITERAL_FLOAT:
-            printf("TOKEN_LITERAL_FLOAT\n");
-            break;
-          case TOKEN_LITERAL_DOUBLE:
-            printf("TOKEN_LITERAL_DOUBLE\n");
-            break;
-          case TOKEN_KEYWORD_INCLUDE:
-            printf("TOKEN_KEYWORD_INCLUDE\n");
-            break;
-          case TOKEN_KEYWORD_CONST:
-            printf("TOKEN_KEYWORD_CONST\n");
-            break;
-          case TOKEN_KEYWORD_FN:
-            printf("TOKEN_KEYWORD_FN\n");
-            break;
-          case TOKEN_KEYWORD_RETURN:
-            printf("TOKEN_KEYWORD_RETURN\n");
-            break;
-          case TOKEN_KEYWORD_IF:
-            printf("TOKEN_KEYWORD_IF\n");
-            break;
-          case TOKEN_KEYWORD_ELSE:
-            printf("TOKEN_KEYWORD_ELSE\n");
-            break;
-          case TOKEN_DELIMITER_PARENTHESIS:
-            printf("TOKEN_DELIMITER_PARENTHESIS %s \n", token.value.TOKEN_DELIMITER_CLOSING ? "closing" : "");
-            break;
-          case TOKEN_DELIMITER_BRACE:
-            printf("TOKEN_DELIMITER_BRACE %s \n", token.value.TOKEN_DELIMITER_CLOSING ? "closing" : "");
-            break;
-          case TOKEN_DELIMITER_BRACKET:
-            printf("TOKEN_DELIMITER_BRACKET %s \n", token.value.TOKEN_DELIMITER_CLOSING ? "closing" : "");
-          break;
-          case TOKEN_DELIMITER_COMMA:
-            printf("TOKEN_DELIMITER_COMMA\n");
-            break;
-          case TOKEN_DELIMITER_SEMICOLON:
-            printf("TOKEN_DELIMITER_SEMICOLON\n");
-            break;
-          case TOKEN_OPERATOR_EQUAL:
-          printf("TOKEN_OPERATOR_EQUAL\n");
-          break;
-        }
+        printf("%.*s ", (unsigned int) token.size, file.ptr + token.byte_pos);
       }
+
+      printf("\n");
 
       free(file.ptr);
       da_destroy(tokens);
