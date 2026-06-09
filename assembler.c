@@ -57,55 +57,22 @@ void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t 
       da_push(tokens, &token, sizeof(token_t));
       break;
     case PARSING_IDENTIFIER:
-      if (streql("include", file.ptr + token_start, i - token_start)) {
-        token = (token_t) {
-          .type = TOKEN_KEYWORD_INCLUDE,
-          .byte_pos = token_start,
-          .size = i - token_start,
-          .file_id = file_id
-        };
-        da_push(tokens, &token, sizeof(token_t));
-      } else if (streql("const", file.ptr + token_start, i - token_start)) {
-        token = (token_t) {
-          .type = TOKEN_KEYWORD_CONST,
-          .byte_pos = token_start,
-          .size = i - token_start,
-          .file_id = file_id
-        };
-        da_push(tokens, &token, sizeof(token_t));
-      } else if (streql("fn", file.ptr + token_start, i - token_start)) {
-        token = (token_t) {
-          .type = TOKEN_KEYWORD_FN,
-          .byte_pos = token_start,
-          .size = i - token_start,
-          .file_id = file_id
-        };
-        da_push(tokens, &token, sizeof(token_t));
-      } else if (streql("return", file.ptr + token_start, i - token_start)) {
-        token = (token_t) {
-          .type = TOKEN_KEYWORD_RETURN,
-          .byte_pos = token_start,
-          .size = i - token_start,
-          .file_id = file_id
-        };
-        da_push(tokens, &token, sizeof(token_t));
-      } else if (streql("if", file.ptr + token_start, i - token_start)) {
-        token = (token_t) {
-          .type = TOKEN_KEYWORD_IF,
-          .byte_pos = token_start,
-          .size = i - token_start,
-          .file_id = file_id
-        };
-        da_push(tokens, &token, sizeof(token_t));
-      } else if (streql("else", file.ptr + token_start, i - token_start)) {
-        token = (token_t) {
-          .type = TOKEN_KEYWORD_ELSE,
-          .byte_pos = token_start,
-          .size = i - token_start,
-          .file_id = file_id
-        };
-        da_push(tokens, &token, sizeof(token_t));
-      } else {
+      bool found = false;
+      for (size_t j = 0; j < sizeof(KEYWORDS_LUT) / sizeof(KEYWORDS_LUT[0]); ++j) {
+        if (streql(KEYWORDS_LUT[j].keyword, file.ptr + token_start, i - token_start)) {
+          token_t token = {
+            .type = KEYWORDS_LUT[j].type,
+            .byte_pos = token_start,
+            .size = i - token_start,
+            .file_id = file_id
+          };
+          da_push(tokens, &token, sizeof(token_t));
+
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
         token = (token_t) {
           .type = TOKEN_IDENTIFIER,
           .byte_pos = token_start,
@@ -131,10 +98,12 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
   size_t column = 0;
   for (size_t i = 0; i < file.size; ++i) {
     char c = file.ptr[i];
-    if (c == '\n' || c == '\r') {
+    if (c == '\r') continue;
+    if (c == '\n') {
       if (comment == COMMENT_YES) comment = COMMENT_NONE;
       row += 1;
       column = 0;
+      end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
       continue;
     }
     column += 1;
