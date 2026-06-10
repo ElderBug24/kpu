@@ -207,6 +207,29 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
         if (parsing == PARSING_NONE) {
           parsing = PARSING_NUMBER;
           token_start = i;
+        } else if (parsing == PARSING_DASH) {
+          parsing = PARSING_NUMBER;
+        }
+        break;
+      case '-':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_DASH;
+          token_start = i;
+        } else if (parsing == PARSING_NUMBER) {
+          return i+1;
+        }
+        break;
+      case '>':
+        if (parsing == PARSING_DASH) {
+          token = (token_t) {
+            .type = TOKEN_KEYWORD_ARROW,
+            .byte_pos = i-1,
+            .size = 2,
+            .file_id = file_id
+          };
+          da_push(tokens, &token, sizeof(token_t));
+        } else {
+          return i+1;
         }
         break;
       case '.':
