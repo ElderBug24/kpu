@@ -36,6 +36,7 @@ void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t 
   switch (*parsing) {
     case PARSING_NONE:
     case PARSING_CHAR:
+    case PARSING_DASH:
     case PARSING_STRING:
       break;
     case PARSING_ZERO:

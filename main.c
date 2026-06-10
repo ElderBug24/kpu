@@ -50,7 +50,17 @@ int main(int argc, char** argv) {
 
       da_t tokens = da_with_capacity(256, sizeof(token_t));
       size_t err = tokenize_file(file, &tokens, 0);
-      if (err) exit_error("could not parse (byte %zu)", err - 1);
+      if (err) {
+        size_t row = 1, column = 1;
+        for (size_t i = 0; i < err - 1; ++i) {
+          if (file.ptr[i] == '\n') {
+            row += 1;
+            column = 0;
+          }
+          column += 1;
+        }
+        exit_error("could not parse file (%s:%zu:%zu)(byte %zu)", filename, row, column, err - 1);
+      }
 
       printf("%zu tokens\n", tokens.count);
       size_t indent = 0;
@@ -73,8 +83,8 @@ int main(int argc, char** argv) {
 
       printf("\n");
 
-      free(file.ptr);
       da_destroy(tokens);
+      free(file.ptr);
 
       break;
     default: exit_error("unreachable");
