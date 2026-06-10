@@ -52,14 +52,23 @@ int main(int argc, char** argv) {
       size_t err = tokenize_file(file, &tokens, 0);
       if (err) {
         size_t row = 1, column = 1;
-        for (size_t i = 0; i < err - 1; ++i) {
+        char* line_start = file.ptr;
+        size_t i, j;
+        for (i = 0; i < err - 1; ++i) {
           if (file.ptr[i] == '\n') {
             row += 1;
             column = 0;
+            line_start = file.ptr + i;
           }
           column += 1;
         }
-        exit_error("could not parse file (%s:%zu:%zu)(byte %zu)", filename, row, column, err - 1);
+
+        for (j = i; j < file.size; ++j) {
+          if (file.ptr[j] == '\n') break;
+        }
+        printf("%.*s\n", (unsigned int) (j - (line_start - file.ptr)), line_start);
+        printf("%*s", (unsigned int) (i - (line_start - file.ptr) + strlen(RED"^"CRESET) - 1), RED"^"CRESET);
+        exit_error("could not parse file %s:%zu:%zu (byte %zu)", filename, row, column, err - 1);
       }
 
       printf("%zu tokens\n", tokens.count);

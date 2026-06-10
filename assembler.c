@@ -31,7 +31,7 @@ strview_t open_file(char* filename) {
   };
 }
 
-void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t token_start, size_t i, strview_t file, FILE_COUNT_T file_id) {
+void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t token_start, size_t i, strview_t file, uint16_t file_id) {
   token_t token;
   switch (*parsing) {
     case PARSING_NONE:
@@ -132,7 +132,7 @@ void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t 
   *parsing = next_parsing;
 }
 
-size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
+size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
   da_reserve(tokens, file.size / 8, sizeof(token_t));
   token_t token = {0};
   size_t token_start = 0;

@@ -1,8 +1,7 @@
 #include <stdint.h>
 
 
-#define MAX_FILES 255
-typedef uint8_t FILE_COUNT_T;
+#define MAX_FILES UINT16_MAX
 
 typedef void assemble_opt_t;
 
@@ -41,9 +40,9 @@ typedef enum {
 
 typedef struct {
   size_t byte_pos;
-  size_t size;
-  FILE_COUNT_T file_id;
   token_type_e type;
+  uint16_t size;
+  uint16_t file_id;
 } token_t;
 
 static const struct {
@@ -72,9 +71,6 @@ static const struct {
   { ';',       TOKEN_DELIMITER_SEMICOLON }
 };
 
-strview_t open_file(char*);
-size_t tokenize_file(strview_t, da_t*, FILE_COUNT_T);
-
 typedef enum {
   COMMENT_NONE,
   COMMENT_MAYBE,
@@ -95,4 +91,7 @@ typedef enum {
   PARSING_IDENTIFIER,
   PARSING_DASH
 } parsing_e;
+
+strview_t open_file(char*);
+size_t tokenize_file(strview_t, da_t*, uint16_t);
 
