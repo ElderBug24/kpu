@@ -133,9 +133,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       if (c == '\'') {
         token = (token_t) {
           .type = TOKEN_LITERAL_CHAR,
-          .value = {
-            .TOKEN_LITERAL_CHAR = file.ptr[i-1]
-          },
           .byte_pos = token_start,
           .size = 3,
           .file_id = file_id

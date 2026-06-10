@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdbool.h>
 
 
 bool streql(const char* cstr, const char* ptr, size_t len) {

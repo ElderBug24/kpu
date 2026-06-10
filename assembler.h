@@ -36,7 +36,6 @@ typedef struct {
   size_t size;
   FILE_COUNT_T file_id;
   union {
-    char TOKEN_LITERAL_CHAR;
     uint8_t TOKEN_STR_DELIMITERS_SIZE;
     bool TOKEN_DELIMITER_CLOSING;
   } value;

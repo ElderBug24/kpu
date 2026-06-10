@@ -1,6 +1,7 @@
 #define KPU_VERSION "0.0.0"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -59,16 +60,14 @@ int main(int argc, char** argv) {
         if (token.type == TOKEN_DELIMITER_BRACE) {
           if (token.value.TOKEN_DELIMITER_CLOSING) {
             indent -= 1;
-            printf("\r");
-            for (size_t j = 0; j < indent; ++j) printf("  ");
+            printf("%-*s", 2 * (unsigned int) indent + 1, "\r");
           } else {
             indent += 1;
           }
         }
         printf("%.*s ", (unsigned int) token.size, file.ptr + token.byte_pos);
         if (token.type == TOKEN_DELIMITER_SEMICOLON || token.type == TOKEN_DELIMITER_BRACE) {
-          printf("\n");
-          for (size_t j = 0; j < indent; ++j) printf("  ");
+          printf("%-*s", 2 * (unsigned int) indent + 1, "\n");
         }
       }
 
