@@ -20,6 +20,7 @@ typedef enum {
   TOKEN_LITERAL_NUM_HEX,
   TOKEN_LITERAL_NUM_OCT,
   TOKEN_LITERAL_FLOAT,
+  TOKEN_LITERAL_FLOAT_SCIENTIFIC,
   TOKEN_KEYWORD_INCLUDE,
   TOKEN_KEYWORD_CONST,
   TOKEN_KEYWORD_FN,
@@ -28,8 +29,11 @@ typedef enum {
   TOKEN_KEYWORD_ELSE,
   TOKEN_KEYWORD_ARROW,
   TOKEN_DELIMITER_PARENTHESIS,
-  TOKEN_DELIMITER_BRACE,
+  TOKEN_DELIMITER_PARENTHESIS_CLOSING,
   TOKEN_DELIMITER_BRACKET,
+  TOKEN_DELIMITER_BRACKET_CLOSING,
+  TOKEN_DELIMITER_BRACE,
+  TOKEN_DELIMITER_BRACE_CLOSING,
   TOKEN_DELIMITER_COMMA,
   TOKEN_DELIMITER_SEMICOLON,
   TOKEN_OPERATOR_EQUAL
@@ -39,10 +43,6 @@ typedef struct {
   size_t byte_pos;
   size_t size;
   FILE_COUNT_T file_id;
-  union {
-    uint8_t TOKEN_STR_DELIMITERS_SIZE;
-    bool TOKEN_DELIMITER_CLOSING;
-  } value;
   token_type_e type;
 } token_t;
 
@@ -61,16 +61,15 @@ static const struct {
 static const struct {
   const char delimiter;
   token_type_e type;
-  bool closing;
 } DELIMITERS_LUT[] = {
-  { '(',       TOKEN_DELIMITER_PARENTHESIS, false },
-  { ')',       TOKEN_DELIMITER_PARENTHESIS, true  },
-  { '[',       TOKEN_DELIMITER_BRACKET,     false },
-  { ']',       TOKEN_DELIMITER_BRACKET,     true  },
-  { '{',       TOKEN_DELIMITER_BRACE,       false },
-  { '}',       TOKEN_DELIMITER_BRACE,       true  },
-  { ',',       TOKEN_DELIMITER_COMMA,       false },
-  { ';',       TOKEN_DELIMITER_SEMICOLON,   false }
+  { '(',       TOKEN_DELIMITER_PARENTHESIS },
+  { ')',       TOKEN_DELIMITER_PARENTHESIS_CLOSING  },
+  { '[',       TOKEN_DELIMITER_BRACKET },
+  { ']',       TOKEN_DELIMITER_BRACKET_CLOSING  },
+  { '{',       TOKEN_DELIMITER_BRACE },
+  { '}',       TOKEN_DELIMITER_BRACE_CLOSING  },
+  { ',',       TOKEN_DELIMITER_COMMA },
+  { ';',       TOKEN_DELIMITER_SEMICOLON }
 };
 
 strview_t open_file(char*);
@@ -92,6 +91,7 @@ typedef enum {
   PARSING_NUMBER_HEX,
   PARSING_NUMBER_OCT,
   PARSING_FLOAT,
+  PARSING_FLOAT_SCIENTIFIC,
   PARSING_IDENTIFIER,
   PARSING_DASH
 } parsing_e;

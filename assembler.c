@@ -93,6 +93,15 @@ void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t 
       };
       da_push(tokens, &token, sizeof(token_t));
       break;
+    case PARSING_FLOAT_SCIENTIFIC:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_FLOAT_SCIENTIFIC,
+        .byte_pos = token_start,
+        .size = i - token_start,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
     case PARSING_IDENTIFIER:
       bool found = false;
       for (size_t j = 0; j < sizeof(KEYWORDS_LUT) / sizeof(KEYWORDS_LUT[0]); ++j) {
@@ -154,9 +163,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       if (c == '"') {
         token = (token_t) {
           .type = TOKEN_LITERAL_STR,
-          .value = {
-            .TOKEN_STR_DELIMITERS_SIZE = 1
-          },
           .byte_pos = token_start,
           .size = i - token_start + 1,
           .file_id = file_id
@@ -184,9 +190,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       if (c == DELIMITERS_LUT[j].delimiter) {
         token_t token = {
           .type = DELIMITERS_LUT[j].type,
-          .value = {
-            .TOKEN_DELIMITER_CLOSING = DELIMITERS_LUT[j].closing
-          },
           .byte_pos = i,
           .size = 1,
           .file_id = file_id
@@ -307,10 +310,18 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
           parsing = PARSING_NUMBER_OCT;
         }
         break;
+      case 'e':
+      case 'E':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_IDENTIFIER;
+          token_start = i;
+        } else if (parsing == PARSING_NUMBER) {
+          parsing = PARSING_FLOAT_SCIENTIFIC;
+        }
+        break;
       case 'a':
       case 'c':
       case 'd':
-      case 'e':
       case 'f':
       case 'g':
       case 'h':
@@ -333,7 +344,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case 'A':
       case 'C':
       case 'D':
-      case 'E':
       case 'F':
       case 'G':
       case 'H':
@@ -363,6 +373,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case '\t':
         end_token(&parsing, PARSING_NONE, tokens, token_start, i, file, file_id);
         break;
+      default:
+        return i+1;
     }
   }
 
