@@ -38,9 +38,45 @@ void end_token(parsing_e* parsing, parsing_e next_parsing, da_t* tokens, size_t 
     case PARSING_CHAR:
     case PARSING_STRING:
       break;
+    case PARSING_ZERO:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_NUM,
+        .byte_pos = i-1,
+        .size = 1,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
     case PARSING_NUMBER:
       token = (token_t) {
         .type = TOKEN_LITERAL_NUM,
+        .byte_pos = token_start,
+        .size = i - token_start,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
+    case PARSING_NUMBER_BIN:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_NUM_BIN,
+        .byte_pos = token_start,
+        .size = i - token_start,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
+    case PARSING_NUMBER_HEX:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_NUM_HEX,
+        .byte_pos = token_start,
+        .size = i - token_start,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
+    case PARSING_NUMBER_OCT:
+      token = (token_t) {
+        .type = TOKEN_LITERAL_NUM_OCT,
         .byte_pos = token_start,
         .size = i - token_start,
         .file_id = file_id
@@ -195,6 +231,13 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
         da_push(tokens, &token, sizeof(token_t));
         break;
       case '0':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_ZERO;
+          token_start = i;
+        } else if (parsing == PARSING_DASH || parsing == PARSING_ZERO) {
+          parsing = PARSING_NUMBER;
+        }
+        break;
       case '1':
       case '2':
       case '3':
@@ -207,7 +250,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
         if (parsing == PARSING_NONE) {
           parsing = PARSING_NUMBER;
           token_start = i;
-        } else if (parsing == PARSING_DASH) {
+        } else if (parsing == PARSING_DASH || parsing == PARSING_ZERO) {
           parsing = PARSING_NUMBER;
         }
         break;
@@ -236,8 +279,34 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
         if (parsing == PARSING_NUMBER) parsing = PARSING_FLOAT;
         else return i+1;
         break;
-      case 'a':
       case 'b':
+      case 'B':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_IDENTIFIER;
+          token_start = i;
+        } else if (parsing == PARSING_ZERO) {
+          parsing = PARSING_NUMBER_BIN;
+        }
+        break;
+      case 'x':
+      case 'X':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_IDENTIFIER;
+          token_start = i;
+        } else if (parsing == PARSING_ZERO) {
+          parsing = PARSING_NUMBER_HEX;
+        }
+        break;
+      case 'o':
+      case 'O':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_IDENTIFIER;
+          token_start = i;
+        } else if (parsing == PARSING_ZERO) {
+          parsing = PARSING_NUMBER_OCT;
+        }
+        break;
+      case 'a':
       case 'c':
       case 'd':
       case 'e':
@@ -250,7 +319,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case 'l':
       case 'm':
       case 'n':
-      case 'o':
       case 'p':
       case 'q':
       case 'r':
@@ -259,11 +327,9 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case 'u':
       case 'v':
       case 'w':
-      case 'x':
       case 'y':
       case 'z':
       case 'A':
-      case 'B':
       case 'C':
       case 'D':
       case 'E':
@@ -276,7 +342,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case 'L':
       case 'M':
       case 'N':
-      case 'O':
       case 'P':
       case 'Q':
       case 'R':
@@ -285,7 +350,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, FILE_COUNT_T file_id) {
       case 'U':
       case 'V':
       case 'W':
-      case 'X':
       case 'Y':
       case 'Z':
       case '_':
