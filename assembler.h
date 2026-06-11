@@ -61,14 +61,14 @@ static const struct {
   const char delimiter;
   token_type_e type;
 } DELIMITERS_LUT[] = {
-  { '(',       TOKEN_DELIMITER_PARENTHESIS },
-  { ')',       TOKEN_DELIMITER_PARENTHESIS_CLOSING  },
-  { '[',       TOKEN_DELIMITER_BRACKET },
-  { ']',       TOKEN_DELIMITER_BRACKET_CLOSING  },
-  { '{',       TOKEN_DELIMITER_BRACE },
-  { '}',       TOKEN_DELIMITER_BRACE_CLOSING  },
-  { ',',       TOKEN_DELIMITER_COMMA },
-  { ';',       TOKEN_DELIMITER_SEMICOLON }
+  { '(', TOKEN_DELIMITER_PARENTHESIS         },
+  { ')', TOKEN_DELIMITER_PARENTHESIS_CLOSING },
+  { '[', TOKEN_DELIMITER_BRACKET             },
+  { ']', TOKEN_DELIMITER_BRACKET_CLOSING     },
+  { '{', TOKEN_DELIMITER_BRACE               },
+  { '}', TOKEN_DELIMITER_BRACE_CLOSING       },
+  { ',', TOKEN_DELIMITER_COMMA               },
+  { ';', TOKEN_DELIMITER_SEMICOLON           }
 };
 
 typedef enum {

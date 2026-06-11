@@ -159,6 +159,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
     column += 1;
     if (comment == COMMENT_YES) continue;
     if (comment == COMMENT_MAYBE && c != '/') return i+1;
+    if (c == '\\' && (parsing == PARSING_STRING || parsing == PARSING_CHAR)) continue;
     if (parsing == PARSING_STRING) {
       if (c == '"') {
         token = (token_t) {
@@ -177,7 +178,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         token = (token_t) {
           .type = TOKEN_LITERAL_CHAR,
           .byte_pos = token_start,
-          .size = 3,
+          .size = i - token_start + 1,
           .file_id = file_id
         };
         da_push(tokens, &token, sizeof(token_t));
