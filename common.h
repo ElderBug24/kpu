@@ -21,4 +21,8 @@
 
 
 bool streql(const char*, const char*, size_t);
+void report_error(size_t, uint16_t, char*, char*, strview_t, char*);
+void report_token_error(token_t, char*, da_t);
+void report_token_warning(token_t, char*, da_t);
+
 

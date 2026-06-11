@@ -10,6 +10,11 @@ typedef struct {
   size_t size;
 } strview_t;
 
+typedef struct {
+  strview_t file;
+  char* filename;
+} file_t;
+
 typedef enum {
   TOKEN_IDENTIFIER,
   TOKEN_LITERAL_CHAR,

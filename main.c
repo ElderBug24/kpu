@@ -48,27 +48,20 @@ int main(int argc, char** argv) {
       strview_t file = open_file(filename);
       if (!file.ptr) exit_error("could not open file '%s'", filename);
 
+      da_t files = da_with_capacity(1, sizeof(file_t));
+      file_t f = (file_t) {
+        .file = file,
+        .filename = filename
+      };
+      da_push(&files, &f, sizeof(file_t));
+
       da_t tokens = da_with_capacity(256, sizeof(token_t));
       size_t err = tokenize_file(file, &tokens, 0);
+      report_token_error(((token_t*) tokens.items)[105], "example error", files);
+      report_token_warning(((token_t*) tokens.items)[150], "example warning", files);
       if (err) {
-        size_t row = 1, column = 1;
-        char* line_start = file.ptr;
-        size_t i, j;
-        for (i = 0; i < err - 1; ++i) {
-          if (file.ptr[i] == '\n') {
-            row += 1;
-            column = 0;
-            line_start = file.ptr + i;
-          }
-          column += 1;
-        }
-
-        for (j = i; j < file.size; ++j) {
-          if (file.ptr[j] == '\n') break;
-        }
-        printf("%.*s\n", (unsigned int) (j - (line_start - file.ptr)), line_start);
-        printf("%*s", (unsigned int) (i - (line_start - file.ptr) + strlen(RED"^"CRESET) - 1), RED"^"CRESET);
-        exit_error("could not parse file %s:%zu:%zu (byte %zu)", filename, row, column, err - 1);
+        report_error(err - 1, 1, RED"error"CRESET": invalid token", RED, file, filename);
+        return 1;
       }
 
       printf("%zu tokens\n", tokens.count);
