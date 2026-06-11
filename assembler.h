@@ -97,6 +97,21 @@ typedef enum {
   PARSING_DASH
 } parsing_e;
 
+static const unsigned char escape_lut[256] = {
+  ['0']  = '\0',
+  ['a']  = '\a',
+  ['b']  = '\b',
+  ['t']  = '\t',
+  ['n']  = '\n',
+  ['v']  = '\v',
+  ['f']  = '\f',
+  ['r']  = '\r',
+  ['"']  = '\"',
+  ['\''] = '\'',
+  ['?']  = '\?',
+  ['\\'] = '\\',
+};
+
 strview_t open_file(char*);
 size_t tokenize_file(strview_t, da_t*, uint16_t);
 

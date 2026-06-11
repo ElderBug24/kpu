@@ -16,9 +16,9 @@ fn main [] -> [[4]] { // 'main' is the entry point of the program and must be un
   [4] float;
 
   [1] num = [(u8) 39]; // parse '39' as an 8 bits unsigned integer and store it into 1 byte
-  bytes = [0, 0b00001001, (char) '\n']; // store a 0 (1 byte), then '00001001', into the first two bytes bytes | '0' is equivalent to '(u8) 0': 1 empty byte and 'bytes = ...' is the same as 'bytes[0] = ...'
+  bytes = [0, 0b00001001, (char) '\'']; // store a 0 (1 byte), then '00001001', into the first two bytes bytes | '0' is equivalent to '(u8) 0': 1 empty byte and 'bytes = ...' is the same as 'bytes[0] = ...'
   bytes[2] = [0xff4754]; // then a hexadecimal number, into the last byte
-  bytes[0] = [num, (u8) 22]; // pastes the content of the variable num then u8 22 starting from the first byte of the variable bytes, replacing 2 bytes
+  bytes[0] = [num, (char) '^']; // pastes the content of the variable num then u8 22 starting from the first byte of the variable bytes, replacing 2 bytes
   float = [PI]; // store the constant 'PI' into 4 bytes
 }
 
