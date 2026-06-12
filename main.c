@@ -57,12 +57,12 @@ int main(int argc, char** argv) {
 
       da_t tokens = da_with_capacity(256, sizeof(token_t));
       size_t err = tokenize_file(file, &tokens, 0);
-      report_token_error(((token_t*) tokens.items)[105], "example error", files);
-      report_token_warning(((token_t*) tokens.items)[150], "example warning", files);
       if (err) {
         report_error(err - 1, 1, RED"error"CRESET": invalid token", RED, file, filename);
         return 1;
       }
+      report_token_error(((token_t*) tokens.items)[105], "example error", files);
+      report_token_warning(((token_t*) tokens.items)[150], "example warning", files);
 
       printf("%zu tokens\n", tokens.count);
       size_t indent = 0;

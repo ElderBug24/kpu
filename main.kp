@@ -8,8 +8,8 @@ include [ // includes the content of files before anything gets tokenized
 // '//' delimits the start of a comment: everything between '//' and the next new line is ignored
 // ';' is the equivalent of a new line and separates statements and operations
 
-const [4] PI = [(float) 3.14]; // parse '3.14' as a 32 bits float and store it into 4 bytes
-const [4] TAU = [(float) 628e-2]; // we don't have any operations yet :(
+const [4] PI = [(float) 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647]; // parse '3.14...' as a 32 bits float and store it into 4 bytes
+const [4] TAU = [(double) -62.8e-1]; // just an example
 
 fn main [] -> [[4]] { // 'main' is the entry point of the program and must be unique
   [3] bytes;
