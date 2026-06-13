@@ -301,7 +301,16 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         } else {
-          return i+1;
+          token = (token_t) {
+            .type = TOKEN_DELIMITER_ANGLE_BRACKET,
+            .byte_pos = i,
+            .size = 1,
+            .file_id = file_id
+          };
+          r = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (r) return r;
+          da_push(tokens, &token, sizeof(token_t));
+          parsing = PARSING_NONE;
         }
         break;
       case '.':

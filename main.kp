@@ -8,37 +8,40 @@ include [ // includes the content of files before anything gets tokenized
 // '//' delimits the start of a comment: everything between '//' and the next new line is ignored
 // ';' is the equivalent of a new line and separates statements and operations
 
-const [4] PI = [(float) 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647]; // parse '3.14...' as a 32 bits float and store it into 4 bytes
-const [4] TAU = [(double) -62.8e-1]; // just an example
+const [4] PI = (float) 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647; // parse '3.14...' as a 32 bits float and store it into 4 bytes
+const [4] TAU = (double) -62.8e-1; // just an example
 
-fn main [] -> [[4]] { // 'main' is the entry point of the program and must be unique
+fn main [] -> [4] { // 'main' is the entry point of the program and must be unique
   [3] bytes;
   [4] float;
 
-  [1] num = [(u8) 39]; // parse '39' as an 8 bits unsigned integer and store it into 1 byte
+  [1] num = (u8) 39; // parse '39' as an 8 bits unsigned integer and store it into 1 byte
   bytes = [0, 0b00001001, (char) '\'']; // store a 0 (1 byte), then '00001001', into the first two bytes bytes | '0' is equivalent to '(u8) 0': 1 empty byte and 'bytes = ...' is the same as 'bytes[0] = ...'
-  bytes[2] = [0xff4754]; // then a hexadecimal number, into the last byte
+  bytes[2] = 0xff4754; // then a hexadecimal number, into the last byte
   bytes[0] = [num, (char) '^']; // pastes the content of the variable num then u8 22 starting from the first byte of the variable bytes, replacing 2 bytes
-  float = [PI]; // store the constant 'PI' into 4 bytes
+  float = PI; // store the constant 'PI' into 4 bytes
+
+  return float;
 }
 
-// declare a function: 'fn #name# [ ... ] -> [ ... ] { ... }'
+// declare a function: 'fn #name# [ ... ] -> [ N ] { ... }'
 fn func [ // parameters: a list
   [1] a,
   [1] b
-] -> [ // return
-  [1]
-] { // body, enclosed by '{' and '}'
+] -> [1] // return
+{ // body, enclosed by '{' and '}'
   [1] c;
+  c = add<1>[a, b]; // c = a + b
 
-  c = [add_u8[a, b]]; // c = a + b
+  [3] d = [a, b, c]; // place a, b and c in d
+  [2] e = d[0 -> 2]; // place d in e, but only the bytes from 0 to 2 (2 bytes)
 
   if (c) { // check if c != 0
-    return [[0]];
+    return 0;
   } else {
-    c = [div_u8[a, c]]; // c = a / c
+    c = div<1>[a, c]; // c = a / c
 
-    return [[c]];
+    return c;
   }
 }
 
