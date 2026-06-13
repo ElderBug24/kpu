@@ -69,14 +69,14 @@ int main(int argc, char** argv) {
       for (size_t i = 0; i < tokens.count; ++i) {
         token_t token = ((token_t*) tokens.items)[i];
 
-        if (token.type == TOKEN_DELIMITER_BRACE) {
+        if (token.type == TOKEN_DELIMITER_CURLY_BRACE) {
           indent += 1;
-        } else if (token.type == TOKEN_DELIMITER_BRACE_CLOSING) {
+        } else if (token.type == TOKEN_DELIMITER_CURLY_BRACE_CLOSING) {
           indent -= 1;
           printf("%-*s", 2 * (unsigned int) indent + 1, "\r");
         }
         printf("%.*s ", (unsigned int) token.size, file.ptr + token.byte_pos);
-        if (token.type == TOKEN_DELIMITER_SEMICOLON || token.type == TOKEN_DELIMITER_BRACE || token.type == TOKEN_DELIMITER_BRACE_CLOSING) {
+        if (token.type == TOKEN_DELIMITER_SEMICOLON || token.type == TOKEN_DELIMITER_CURLY_BRACE || token.type == TOKEN_DELIMITER_CURLY_BRACE_CLOSING) {
           printf("%-*s", 2 * (unsigned int) indent + 1, "\n");
         }
       }
