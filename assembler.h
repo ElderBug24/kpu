@@ -42,7 +42,11 @@ typedef enum {
   TOKEN_DELIMITER_ANGLE_BRACKET_CLOSING,
   TOKEN_DELIMITER_COMMA,
   TOKEN_DELIMITER_SEMICOLON,
-  TOKEN_OPERATOR_EQUAL
+  TOKEN_OPERATOR_EQUAL,
+  TOKEN_OPERATOR_PLUS,
+  TOKEN_OPERATOR_MINUS,
+  TOKEN_OPERATOR_STAR,
+  TOKEN_OPERATOR_SLASH
 } token_type_e;
 
 typedef struct {
@@ -76,14 +80,11 @@ static const struct {
   { '}', TOKEN_DELIMITER_CURLY_BRACE_CLOSING    },
   { '<', TOKEN_DELIMITER_ANGLE_BRACKET          },
   { ',', TOKEN_DELIMITER_COMMA                  },
-  { ';', TOKEN_DELIMITER_SEMICOLON              }
+  { ';', TOKEN_DELIMITER_SEMICOLON              },
+  { '=', TOKEN_OPERATOR_EQUAL                   },
+  { '+', TOKEN_OPERATOR_PLUS                    },
+  { '*', TOKEN_OPERATOR_STAR                    }
 };
-
-typedef enum {
-  COMMENT_NONE,
-  COMMENT_MAYBE,
-  COMMENT_YES
-} comment_e;
 
 typedef enum {
   PARSING_NONE,
@@ -97,7 +98,8 @@ typedef enum {
   PARSING_FLOAT,
   PARSING_FLOAT_SCIENTIFIC,
   PARSING_IDENTIFIER,
-  PARSING_DASH
+  PARSING_DASH,
+  PARSING_SLASH
 } parsing_e;
 
 static const unsigned char escape_lut[256] = {
