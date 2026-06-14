@@ -37,7 +37,7 @@ fn func [ // parameters: a list
   [3] d = [a, b, c]; // place a, b and c in d
   [2] e = d[0 -> 2]; // place d in e, but only the bytes from 0 to 2 (2 bytes)
 
-  if (c) { // check if c != 0
+  if (c & !(d == c) | (a == c)) { // check if c != 0
     return 0;
   } else {
     c = div<1>[a, c]; // c = a / c
