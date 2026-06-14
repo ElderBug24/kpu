@@ -37,9 +37,26 @@ size_t end_token(parsing_e parsing, da_t* tokens, size_t token_start, size_t i, 
     case PARSING_NONE:
       break;
     case PARSING_CHAR:
-    case PARSING_DASH:
     case PARSING_STRING:
       return i+1;
+    case PARSING_DASH:
+      token = (token_t) {
+        .type = TOKEN_OPERATOR_MINUS,
+        .byte_pos = i-1,
+        .size = 1,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
+    case PARSING_SLASH:
+      token = (token_t) {
+        .type = TOKEN_OPERATOR_SLASH,
+        .byte_pos = i-1,
+        .size = 1,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
     case PARSING_ZERO:
       token = (token_t) {
         .type = TOKEN_LITERAL_NUM,
@@ -138,25 +155,24 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
   da_reserve(tokens, file.size / 8, sizeof(token_t));
   token_t token = {0};
   size_t token_start = 0;
-  comment_e comment = COMMENT_NONE;
-  parsing_e parsing;
-  parsing = PARSING_NONE;
+  parsing_e parsing = PARSING_NONE;
+  bool comment = false;
   bool escaped = false;
-  size_t r;
+  size_t r = 0;
 
   size_t row = 1;
   size_t column = 0;
   for (size_t i = 0; i < file.size; ++i) {
     char c = file.ptr[i];
     if (c == '\r') {
-      if (comment == COMMENT_YES) comment = COMMENT_NONE;
+      comment = false;
       r = end_token(parsing, tokens, token_start, i, file, file_id);
       if (r) return r;
       parsing = PARSING_NONE;
       continue;
     }
     if (c == '\n') {
-      if (comment == COMMENT_YES) comment = COMMENT_NONE;
+      comment = false;
       row += 1;
       column = 0;
       r = end_token(parsing, tokens, token_start, i, file, file_id);
@@ -165,8 +181,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
       continue;
     }
     column += 1;
-    if (comment == COMMENT_YES) continue;
-    if (comment == COMMENT_MAYBE && c != '/') return i+1;
+    if (comment) continue;
     if (c == '\\' && (parsing == PARSING_STRING || parsing == PARSING_CHAR)) {
       escaped = true;
       continue;
@@ -220,18 +235,12 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
     if (found) continue;
     switch (c) {
       case '/':
-        switch (comment) {
-          case COMMENT_NONE:
-            comment = COMMENT_MAYBE;
-            r = end_token(parsing, tokens, token_start, i, file, file_id);
-            if (r) return r;
-            parsing = PARSING_NONE;
-            break;
-          case COMMENT_MAYBE:
-            comment = COMMENT_YES;
-            break;
-          case COMMENT_YES:
-            break;
+        if (parsing == PARSING_SLASH) {
+          comment = true;
+          parsing = PARSING_NONE;
+          break;
+        } else {
+          parsing = PARSING_SLASH;
         }
         break;
       case '"':
@@ -245,18 +254,6 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         r = end_token(parsing, tokens, token_start, i, file, file_id);
         if (r) return r;
         parsing = PARSING_CHAR;
-        break;
-      case '=':
-        token = (token_t) {
-          .type = TOKEN_OPERATOR_EQUAL,
-          .byte_pos = i,
-          .size = 1,
-          .file_id = file_id
-        };
-        r = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (r) return r;
-        parsing = PARSING_NONE;
-        da_push(tokens, &token, sizeof(token_t));
         break;
       case '0':
         if (parsing == PARSING_NONE) {
