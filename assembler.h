@@ -46,7 +46,10 @@ typedef enum {
   TOKEN_OPERATOR_PLUS,
   TOKEN_OPERATOR_MINUS,
   TOKEN_OPERATOR_STAR,
-  TOKEN_OPERATOR_SLASH
+  TOKEN_OPERATOR_SLASH,
+  TOKEN_OPERATOR_BANG,
+  TOKEN_OPERATOR_AMPERSAND,
+  TOKEN_OPERATOR_PIPE
 } token_type_e;
 
 typedef struct {
@@ -83,7 +86,10 @@ static const struct {
   { ';', TOKEN_DELIMITER_SEMICOLON              },
   { '=', TOKEN_OPERATOR_EQUAL                   },
   { '+', TOKEN_OPERATOR_PLUS                    },
-  { '*', TOKEN_OPERATOR_STAR                    }
+  { '*', TOKEN_OPERATOR_STAR                    },
+  { '!', TOKEN_OPERATOR_BANG                    },
+  { '&', TOKEN_OPERATOR_AMPERSAND               },
+  { '|', TOKEN_OPERATOR_PIPE                    }
 };
 
 typedef enum {
