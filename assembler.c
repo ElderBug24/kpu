@@ -57,6 +57,24 @@ size_t end_token(parsing_e parsing, da_t* tokens, size_t token_start, size_t i, 
       };
       da_push(tokens, &token, sizeof(token_t));
       break;
+    case PARSING_EQUAL:
+      token = (token_t) {
+        .type = TOKEN_OPERATOR_EQUAL,
+        .byte_pos = i-1,
+        .size = 1,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
+    case PARSING_BANG:
+      token = (token_t) {
+        .type = TOKEN_OPERATOR_BANG,
+        .byte_pos = i-1,
+        .size = 1,
+        .file_id = file_id
+      };
+      da_push(tokens, &token, sizeof(token_t));
+      break;
     case PARSING_ZERO:
       token = (token_t) {
         .type = TOKEN_LITERAL_NUM,
@@ -283,8 +301,56 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         if (parsing == PARSING_NONE) {
           parsing = PARSING_DASH;
           token_start = i;
-        } else if (parsing == PARSING_NUMBER || parsing == PARSING_FLOAT || parsing == PARSING_NUMBER_BIN || parsing == PARSING_NUMBER_HEX || parsing == PARSING_NUMBER_OCT) {
-          return i+1;
+        } else if (parsing == PARSING_FLOAT_SCIENTIFIC) {
+        } else {
+          token = (token_t) {
+            .type = TOKEN_OPERATOR_MINUS,
+            .byte_pos = i,
+            .size = 1,
+            .file_id = file_id
+          };
+          r = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (r) return r;
+          da_push(tokens, &token, sizeof(token_t));
+          parsing = PARSING_NONE;
+        }
+        break;
+      case '=':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_EQUAL;
+          token_start = i;
+        } else if (parsing == PARSING_EQUAL) {
+          token = (token_t) {
+            .type = TOKEN_OPERATOR_EQUALEQUAL,
+            .byte_pos = i-1,
+            .size = 2,
+            .file_id = file_id
+          };
+          da_push(tokens, &token, sizeof(token_t));
+          parsing = PARSING_NONE;
+        } else if (parsing == PARSING_BANG) {
+          token = (token_t) {
+            .type = TOKEN_OPERATOR_BANGEQUAL,
+            .byte_pos = i-1,
+            .size = 2,
+            .file_id = file_id
+          };
+          da_push(tokens, &token, sizeof(token_t));
+          parsing = PARSING_NONE;
+        } else {
+          r = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (r) return r;
+          parsing = PARSING_NONE;
+        }
+        break;
+      case '!':
+        if (parsing == PARSING_NONE) {
+          parsing = PARSING_BANG;
+          token_start = i;
+        } else {
+          r = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (r) return r;
+          parsing = PARSING_NONE;
         }
         break;
       case '>':

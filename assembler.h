@@ -49,7 +49,10 @@ typedef enum {
   TOKEN_OPERATOR_SLASH,
   TOKEN_OPERATOR_BANG,
   TOKEN_OPERATOR_AMPERSAND,
-  TOKEN_OPERATOR_PIPE
+  TOKEN_OPERATOR_PIPE,
+  TOKEN_OPERATOR_TILDE,
+  TOKEN_OPERATOR_EQUALEQUAL,
+  TOKEN_OPERATOR_BANGEQUAL
 } token_type_e;
 
 typedef struct {
@@ -84,12 +87,11 @@ static const struct {
   { '<', TOKEN_DELIMITER_ANGLE_BRACKET          },
   { ',', TOKEN_DELIMITER_COMMA                  },
   { ';', TOKEN_DELIMITER_SEMICOLON              },
-  { '=', TOKEN_OPERATOR_EQUAL                   },
   { '+', TOKEN_OPERATOR_PLUS                    },
   { '*', TOKEN_OPERATOR_STAR                    },
-  { '!', TOKEN_OPERATOR_BANG                    },
   { '&', TOKEN_OPERATOR_AMPERSAND               },
-  { '|', TOKEN_OPERATOR_PIPE                    }
+  { '|', TOKEN_OPERATOR_PIPE                    },
+  { '~', TOKEN_OPERATOR_TILDE                   }
 };
 
 typedef enum {
@@ -105,7 +107,9 @@ typedef enum {
   PARSING_FLOAT_SCIENTIFIC,
   PARSING_IDENTIFIER,
   PARSING_DASH,
-  PARSING_SLASH
+  PARSING_SLASH,
+  PARSING_EQUAL,
+  PARSING_BANG
 } parsing_e;
 
 static const unsigned char escape_lut[256] = {
