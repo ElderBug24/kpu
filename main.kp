@@ -8,7 +8,7 @@ include [ // includes the content of files before anything gets tokenized
 // '//' delimits the start of a comment: everything between '//' and the next new line is ignored
 // ';' is the equivalent of a new line and separates statements and operations
 
-const [4] PI = (float) 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067982148086513282306647;
+const [4] PI = (float) 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172;
 // parse '3.14...' as a 32 bits float and store it into 4 bytes
 const [4] TAU = (double) -62.8e-1; // just some examples
 const [2] N = <(2 * 30 - 1) / 7>; // < ... > is a value calculated at compile time
