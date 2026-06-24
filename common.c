@@ -12,7 +12,7 @@ bool streql(const char* cstr, const char* ptr, size_t len) {
   return strlen(cstr) == len && memcmp(cstr, ptr, len) == 0;
 }
 
-void report_error(size_t byte_pos, uint16_t size, char* comment, char* color, strview_t file, char* filename) {
+void report_error(size_t byte_pos, uint16_t size, char* color, strview_t file, char* filename, char* comment) {
   size_t row = 1, column = 1;
   char* line_start = file.ptr;
   size_t i, j;
@@ -42,7 +42,7 @@ void report_token_error(token_t token, char* comment, da_t files) {
   memcpy(buf + strlen(buf), comment, strlen(comment));
 
   size_t i = token.file_id;
-  report_error(token.byte_pos, token.size, buf, RED, ((file_t*) files.items)[i].file, ((file_t*) files.items)[i].filename);
+  report_error(token.byte_pos, token.size, RED, ((file_t*) files.items)[i].file, ((file_t*) files.items)[i].filename, buf);
 }
 
 void report_token_warning(token_t token, char* comment, da_t files) {
@@ -50,6 +50,6 @@ void report_token_warning(token_t token, char* comment, da_t files) {
   memcpy(buf + strlen(buf), comment, strlen(comment));
 
   size_t i = token.file_id;
-  report_error(token.byte_pos, token.size, buf, MAG, ((file_t*) files.items)[i].file, ((file_t*) files.items)[i].filename);
+  report_error(token.byte_pos, token.size, MAG, ((file_t*) files.items)[i].file, ((file_t*) files.items)[i].filename, buf);
 }
 

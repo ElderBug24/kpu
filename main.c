@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     command = command_version;
   } else if (strcmp(argv[1], "assemble") == 0 || strcmp(argv[1], "ass") == 0 || strcmp(argv[1], "a") == 0) {
     command = command_assemble;
-  } else exit_error("unkown command");
+  } else exit_error("unknown command");
 
   switch (command) {
     case command_help:
@@ -56,9 +56,8 @@ int main(int argc, char** argv) {
       da_push(&files, &f, sizeof(file_t));
 
       da_t tokens = da_with_capacity(256, sizeof(token_t));
-      size_t err = tokenize_file(file, &tokens, 0);
-      if (err) {
-        report_error(err - 1, 1, RED"error"CRESET": invalid token", RED, file, filename);
+      if (tokenize_file(file, &tokens, 0)) {
+        report_error_va(TOKENIZER_ERROR_BYTELOC, 1, RED, file, filename, RED"error"CRESET": %s", tokenizer_error_getmsg(TOKENIZER_ERROR_TYPE));
         return 1;
       }
       report_token_error(((token_t*) tokens.items)[102], "example error", files);

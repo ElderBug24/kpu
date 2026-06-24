@@ -3,6 +3,20 @@
 
 #define MAX_FILES UINT16_MAX
 
+typedef enum {
+  TOKENIZER_ERROR_NONE,
+  TOKENIZER_ERROR_UNKNOWN,
+  TOKENIZER_ERROR_UNEXPECTED_CHARACTER,
+  TOKENIZER_ERROR_UNFINISHED_CHAR,
+  TOKENIZER_ERROR_UNFINISHED_STRING,
+  TOKENIZER_ERROR_SPARSE_DOT
+} TOKENIZER_ERROR_TYPE_e;
+
+extern const struct TOKENIZER_ERROR_LUT_s {
+  TOKENIZER_ERROR_TYPE_e err;
+  char* msg;
+} TOKENIZER_ERROR_LUT[];
+
 typedef void assemble_opt_t;
 
 typedef struct {
@@ -128,5 +142,9 @@ static const unsigned char escape_lut[256] = {
 };
 
 strview_t open_file(char*);
-size_t tokenize_file(strview_t, da_t*, uint16_t);
+bool tokenize_file(strview_t, da_t*, uint16_t);
+char* tokenizer_error_getmsg(TOKENIZER_ERROR_TYPE_e);
+
+extern size_t TOKENIZER_ERROR_BYTELOC;
+extern TOKENIZER_ERROR_TYPE_e TOKENIZER_ERROR_TYPE;
 

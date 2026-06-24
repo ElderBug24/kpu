@@ -7,6 +7,28 @@
 #include "common.h"
 
 
+size_t TOKENIZER_ERROR_BYTELOC = 0;
+TOKENIZER_ERROR_TYPE_e TOKENIZER_ERROR_TYPE = TOKENIZER_ERROR_NONE;
+
+const struct TOKENIZER_ERROR_LUT_s TOKENIZER_ERROR_LUT[] = {
+  { TOKENIZER_ERROR_NONE, "no error" },
+  { TOKENIZER_ERROR_UNKNOWN, "unknown error" },
+  { TOKENIZER_ERROR_UNEXPECTED_CHARACTER, "unexpected character" },
+  { TOKENIZER_ERROR_UNFINISHED_CHAR, "unfinished char" },
+  { TOKENIZER_ERROR_UNFINISHED_STRING, "unfinished string" },
+  { TOKENIZER_ERROR_SPARSE_DOT, "sparse dot" }
+};
+
+char* tokenizer_error_getmsg(TOKENIZER_ERROR_TYPE_e err) {
+  for (size_t i = 0; i < sizeof(TOKENIZER_ERROR_LUT) / sizeof(TOKENIZER_ERROR_LUT[0]); ++i) {
+    if (err == TOKENIZER_ERROR_LUT[i].err) {
+      return TOKENIZER_ERROR_LUT[i].msg;
+    }
+  }
+
+  return NULL;
+}
+
 strview_t open_file(char* filename) {
   FILE* file = fopen(filename, "rb");
   if (!file) return (strview_t) {0};
@@ -29,14 +51,19 @@ strview_t open_file(char* filename) {
   };
 }
 
-size_t end_token(parsing_e parsing, da_t* tokens, size_t token_start, size_t i, strview_t file, uint16_t file_id) {
+bool end_token(parsing_e parsing, da_t* tokens, size_t token_start, size_t i, strview_t file, uint16_t file_id) {
   token_t token;
   switch (parsing) {
     case PARSING_NONE:
       break;
     case PARSING_CHAR:
+      TOKENIZER_ERROR_BYTELOC = i;
+      TOKENIZER_ERROR_TYPE = TOKENIZER_ERROR_UNFINISHED_CHAR;
+      return true;
     case PARSING_STRING:
-      return i+1;
+      TOKENIZER_ERROR_BYTELOC = i;
+      TOKENIZER_ERROR_TYPE = TOKENIZER_ERROR_UNFINISHED_STRING;
+      return true;
     case PARSING_DASH:
       token = (token_t) {
         .type = TOKEN_OPERATOR_MINUS,
@@ -164,35 +191,32 @@ size_t end_token(parsing_e parsing, da_t* tokens, size_t token_start, size_t i, 
       break;
   }
 
-  return 0;
+  return false;
 }
 
-size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
+bool tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
   da_reserve(tokens, file.size / 8, sizeof(token_t));
   token_t token = {0};
   size_t token_start = 0;
   parsing_e parsing = PARSING_NONE;
   bool comment = false;
   bool escaped = false;
-  size_t ret = 0;
 
   size_t row = 1;
   size_t column = 0;
   for (size_t i = 0; i < file.size; ++i) {
     char c = file.ptr[i];
-    if (c == '\r') {
+    if (c == '\r' && parsing != PARSING_STRING) {
       comment = false;
-      ret = end_token(parsing, tokens, token_start, i, file, file_id);
-      if (ret) return ret;
+      if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
       parsing = PARSING_NONE;
       continue;
     }
-    if (c == '\n') {
+    if (c == '\n' && parsing != PARSING_STRING) {
       comment = false;
       row += 1;
       column = 0;
-      ret = end_token(parsing, tokens, token_start, i, file, file_id);
-      if (ret) return ret;
+      if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
       parsing = PARSING_NONE;
       continue;
     }
@@ -239,8 +263,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           .size = 1,
           .file_id = file_id
         };
-        ret = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (ret) return ret;
+        if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;;
         parsing = PARSING_NONE;
         da_push(tokens, &token, sizeof(token_t));
 
@@ -261,14 +284,12 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         break;
       case '"':
         token_start = i;
-        ret = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (ret) return ret;
+        if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
         parsing = PARSING_STRING;
         break;
       case '\'':
         token_start = i;
-        ret = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (ret) return ret;
+        if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
         parsing = PARSING_CHAR;
         break;
       case '0':
@@ -307,8 +328,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
             .size = 1,
             .file_id = file_id
           };
-          ret = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (ret) return ret;
+          if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         }
@@ -336,8 +356,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         } else {
-          ret = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (ret) return ret;
+          if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
           parsing = PARSING_NONE;
         }
         break;
@@ -346,8 +365,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           parsing = PARSING_BANG;
           token_start = i;
         } else {
-          ret = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (ret) return ret;
+          if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
           parsing = PARSING_NONE;
         }
         break;
@@ -368,15 +386,18 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
             .size = 1,
             .file_id = file_id
           };
-          ret = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (ret) return ret;
+          if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         }
         break;
       case '.':
         if (parsing == PARSING_NUMBER) parsing = PARSING_FLOAT;
-        else return i+1;
+        else {
+          TOKENIZER_ERROR_BYTELOC = i;
+          TOKENIZER_ERROR_TYPE = TOKENIZER_ERROR_SPARSE_DOT;
+          return true;
+        }
         break;
       case 'b':
       case 'B':
@@ -466,15 +487,17 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         break;
       case ' ':
       case '\t':
-        ret = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (ret) return ret;
+        if (end_token(parsing, tokens, token_start, i, file, file_id)) return true;
         parsing = PARSING_NONE;
         break;
       default:
-        return i+1;
+        TOKENIZER_ERROR_BYTELOC = i;
+        TOKENIZER_ERROR_TYPE = TOKENIZER_ERROR_UNEXPECTED_CHARACTER;
+        return true;
     }
   }
+  if (end_token(parsing, tokens, token_start, file.size - 1, file, file_id)) return true;
 
-  return 0;
+  return false;
 }
 
