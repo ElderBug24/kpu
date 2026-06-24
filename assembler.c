@@ -1,8 +1,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
 
 #include "dynamicarrays.h"
 #include "assembler.h"
@@ -176,7 +174,7 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
   parsing_e parsing = PARSING_NONE;
   bool comment = false;
   bool escaped = false;
-  size_t r = 0;
+  size_t ret = 0;
 
   size_t row = 1;
   size_t column = 0;
@@ -184,8 +182,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
     char c = file.ptr[i];
     if (c == '\r') {
       comment = false;
-      r = end_token(parsing, tokens, token_start, i, file, file_id);
-      if (r) return r;
+      ret = end_token(parsing, tokens, token_start, i, file, file_id);
+      if (ret) return ret;
       parsing = PARSING_NONE;
       continue;
     }
@@ -193,8 +191,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
       comment = false;
       row += 1;
       column = 0;
-      r = end_token(parsing, tokens, token_start, i, file, file_id);
-      if (r) return r;
+      ret = end_token(parsing, tokens, token_start, i, file, file_id);
+      if (ret) return ret;
       parsing = PARSING_NONE;
       continue;
     }
@@ -241,8 +239,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           .size = 1,
           .file_id = file_id
         };
-        r = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (r) return r;
+        ret = end_token(parsing, tokens, token_start, i, file, file_id);
+        if (ret) return ret;
         parsing = PARSING_NONE;
         da_push(tokens, &token, sizeof(token_t));
 
@@ -263,14 +261,14 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         break;
       case '"':
         token_start = i;
-        r = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (r) return r;
+        ret = end_token(parsing, tokens, token_start, i, file, file_id);
+        if (ret) return ret;
         parsing = PARSING_STRING;
         break;
       case '\'':
         token_start = i;
-        r = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (r) return r;
+        ret = end_token(parsing, tokens, token_start, i, file, file_id);
+        if (ret) return ret;
         parsing = PARSING_CHAR;
         break;
       case '0':
@@ -309,8 +307,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
             .size = 1,
             .file_id = file_id
           };
-          r = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (r) return r;
+          ret = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (ret) return ret;
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         }
@@ -338,8 +336,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         } else {
-          r = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (r) return r;
+          ret = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (ret) return ret;
           parsing = PARSING_NONE;
         }
         break;
@@ -348,8 +346,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
           parsing = PARSING_BANG;
           token_start = i;
         } else {
-          r = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (r) return r;
+          ret = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (ret) return ret;
           parsing = PARSING_NONE;
         }
         break;
@@ -370,8 +368,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
             .size = 1,
             .file_id = file_id
           };
-          r = end_token(parsing, tokens, token_start, i, file, file_id);
-          if (r) return r;
+          ret = end_token(parsing, tokens, token_start, i, file, file_id);
+          if (ret) return ret;
           da_push(tokens, &token, sizeof(token_t));
           parsing = PARSING_NONE;
         }
@@ -468,8 +466,8 @@ size_t tokenize_file(strview_t file, da_t* tokens, uint16_t file_id) {
         break;
       case ' ':
       case '\t':
-        r = end_token(parsing, tokens, token_start, i, file, file_id);
-        if (r) return r;
+        ret = end_token(parsing, tokens, token_start, i, file, file_id);
+        if (ret) return ret;
         parsing = PARSING_NONE;
         break;
       default:
